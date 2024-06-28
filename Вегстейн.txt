@@ -1,0 +1,125 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
+import java.util.Scanner
+import kotlin.math.*
+
+fun console_text(message: String)
+{
+    print(message)
+    Files.write(Paths.get("data/name2.txt"),message.toByteArray())
+}
+fun function(number: Int, x: Double): Double
+{
+    if(number==1)
+    {
+        return x.pow(5)+3
+    }
+    else if(number==2)
+    {
+        return sin(x)
+    }
+    else
+    {
+        return (x-2)*(x+1)*(x+5)
+    }
+}
+fun derf(number: Int,x:Double): Double
+{
+    var h = 1e-7
+    return (function(number,x+h)-function(number,x))/h
+}
+fun fi(number: Int,x:Double,x0:Double): Double
+{
+    return x-(function(number,x)/derf(number,x0))
+}
+fun vegstein(number: Int, count: Int, A: MutableList<Double>, s: Double )
+{
+    var eps: Double
+    var x_0: Double
+    var x1: Double
+    var x_1: Double
+    var x2: Double
+    var x_2: Double
+    var ksi: Double
+    var q: Double
+    var scan=Scanner(System.`in`)
+    println("Введите eps: ")
+    eps=scan.nextDouble()
+    for(i in 0..(count-1))
+    {
+        var step = 0
+        var x0=A[i]
+        q= max(abs(derf(number,x0)), abs(derf(number,x0+s)))
+        console_text("\nq: "+"${q}".padEnd(6))
+        ksi=x0
+        x1=fi(number,x0,x0)
+        if(abs(x1-x0)>(eps*(1-q)/q))
+        {
+            x_0=x0
+            x_1=x1
+            do{
+                step++
+                x2=fi(number,x_1,x0)
+                x_2=(x2*x_0-x1*x_1)/(x2+x_0-x1-x_1)
+                x_0=x_1
+                x1=x2
+                x_1=x_2
+                ksi=x2
+            } while(abs(x2-x_1)>(eps*(1-q)/q) && (abs(function(number, ksi)) > eps && step < 1000))
+        }
+        if(abs(function(number,ksi))<eps)
+        {
+            if(number==2)
+            {
+                console_text("\nНоль функции по номеру ${i+1}: ${ksi/PI}PI step: ${step}")
+            }
+            else
+            {
+                console_text("\nНоль функции по номеру ${i+1}: ${ksi} step: ${step}")
+            }
+        }
+        else
+        {
+            console_text("\nМетод расходится: ${ksi}")
+        }
+    }
+}
+fun main()
+{
+    var scan=Scanner(System.`in`)
+    var A: MutableList<Double> = mutableListOf()
+    var a: Double
+    var b: Double
+    var step: Double
+    var count = 0
+    println("Введите номер функции:\n1 - (x^5+3)\n2 - sin(x)\n3 - (x-2)*(x+1)*(x+5)")
+    var number = scan.nextInt()
+    println("Введите a и b: ")
+    a = scan.nextDouble()
+    b=scan.nextDouble()
+    step= min(0.5,(b-a))
+    var k = ((b-a)/step).toInt()
+    for(i in 0..k-1)
+    {
+        if(function(number,a+i*step) * function(number,a+(i+1)*step) < 0 || function(number, a+i*step)==0.0)
+        {
+            count++
+            A.add(a+i*step)
+        }
+    }
+    if(function(number,a+k*step)==0.0)
+    {
+        count++
+        A.add(a+k*step)
+    }
+    if(count>0)
+    {
+        vegstein(number,count,A,step)
+    }
+    else
+    {
+        console_text("Нет нулей на данном отрезке")
+        return
+    }
+}

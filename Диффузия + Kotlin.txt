@@ -1,0 +1,131 @@
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+
+fun solve_dif(solution: Int, alpha: Double, hx: Double, hy: Double, tau: Double, nx: Int, ny: Int, nt: Int, u_nach: MutableList<MutableList<Double>>): MutableList<MutableList<Double>> {
+    println("hx=$hx")
+    println("hy=$hy")
+    var u = MutableList(nx){ MutableList(ny){0.0} }
+    var u_prev = MutableList(nx){ MutableList(ny){0.0} }
+    for (i in 0..nx-1){
+        for (j in 0..ny-1){
+            u[i][j] = u_nach[i][j]
+        }
+    }
+    println("t=0")
+    for (i in 0.. nx-1){
+        for (j in 0.. ny-1){
+            print("${u[i][j]} ")
+        }
+        println()
+    }
+    println("\n")
+    for (n in 1..nt){
+        for (i in 0..nx-1){
+            for (j in 0..ny-1){
+                u_prev[i][j] = u[i][j]
+            }
+        }
+        for (i in 1..nx-2){
+            for (j in 1..ny-2){
+                u[i][j]=u_prev[i][j]+tau*alpha*((u_prev[i+1][j]-2*u_prev[i][j]+u_prev[i-1][j])/(hx*hx)+
+                        (u_prev[i][j+1]-2*u_prev[i][j]+u_prev[i][j-1])/(hy*hy))
+            }
+        }
+        if(solution==1){
+            var temp = 0.0
+            for (i in 0..nx-1){
+                u[i][0]=(4*temp)*(1-temp)
+                temp+=hx
+                u[i][ny-1]=0.0
+            }
+            for (j in 0..ny-1){
+                u[0][j]=0.0
+                u[nx-1][j]=0.0
+            }
+        }
+        else if (solution==2){
+
+            }
+        else{
+            var temp = 0.0
+            for (j in 0..ny-1){
+                u_nach[j][0]=3*sin(3*temp)
+                temp+=hy
+            }
+        }
+        if(n==1 || n==250 || n==500){
+            println("t=$n")
+            for (i in 0.. nx-1){
+                for (j in 0.. ny-1){
+                    print("${u[i][j]} ")
+                }
+                println()
+            }
+            println("\n")
+        }
+    }
+    return u
+}
+
+fun main(){
+    var solution = 3
+    var alpha = 1.0
+    var lx =1.0
+    var ly = 1.0
+    var nx = 11
+    var ny = 11
+    var tau = 0.0001
+    var nt = 500
+    var dx: Double = 0.0
+    var dy: Double = 0.0
+    var u_nach = MutableList(nx){ MutableList(ny){0.0} }
+    var temp = 0.0
+    if(solution == 1){
+        dx = lx/(nx-1)
+        dy = ly/(ny-1)
+        for (i in 0..nx-1){
+            u_nach[i][0]=(4*temp)*(1-temp)
+            temp+=dx
+        }
+    }
+    else
+        if (solution==2){
+            alpha=9.0
+            ly=(PI/2)
+            lx=(PI)
+            nx=20
+            ny=20
+            u_nach = MutableList(nx){ MutableList(ny){0.0} }
+            dx = lx/(nx-1)
+            dy = ly/(ny-1)
+            var temp_x = MutableList(nx){0.0}
+            var temp_y = MutableList(ny){0.0}
+            for(i in 0..nx-1){
+                temp_x[i] = i*dx
+                temp_y[i] = i*dy
+            }
+            for(i in 0..nx-1){
+                for(j in 0..ny-1){
+                    u_nach[i][j]=(temp_x[i].pow(2)- PI*temp_x[i])*sin(temp_y[j])
+                }
+            }
+        }
+    else{
+            alpha=1.0
+            ly= PI
+            lx= PI
+            nx=10
+            ny=10
+            u_nach = MutableList(nx){ MutableList(ny){0.0} }
+            dx = lx/(nx-1)
+            dy = ly/(ny-1)
+            for (j in 0..ny-1){
+                u_nach[0][j]=3*sin(3*temp)
+                temp+=dy
+            }
+        }
+    var u_final = solve_dif(solution,alpha,dx,dy,tau,nx,ny,nt,u_nach)
+}
+

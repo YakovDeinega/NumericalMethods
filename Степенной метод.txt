@@ -1,0 +1,74 @@
+import kotlin.random.*
+import kotlin.math.*
+fun function(choice: Int): MutableList<MutableList<Int>>{
+    if (choice==1)
+        return mutableListOf(mutableListOf(1, 2), mutableListOf(2, -2)) //2, -3
+    else if(choice == 2)
+    	return mutableListOf(mutableListOf(5, 6, 3), mutableListOf(-1, 0, 1), mutableListOf(1, 2, -1)) //-2, 2, 4
+    else if(choice == 3)
+    	return mutableListOf(mutableListOf(1, 1, 1, 0), mutableListOf(1, 1, 0, 1), mutableListOf(1, 0, 1, 1), mutableListOf(0, 1, 1, 1)) //-1, 1, 3
+    else
+        return mutableListOf(mutableListOf(0))
+}
+fun main() {
+    var choice = 2
+    var n = function(choice).size
+    var A=function(choice)
+    var y = MutableList(n){Random.nextDouble(0.0,1.0)}
+    println(y)
+    var norma: Double
+    var x = MutableList(n){0.0}
+    var delta = 1e-6
+    var lambda = MutableList(n){0.0}
+    var last = MutableList(n){0.0}
+    var temp = 0
+    var sum = 0.0
+    var flag: MutableList<Boolean>
+    var count: Int
+    do{
+        count=0
+        flag = MutableList(n){false}
+        for(i in 0..n-1)
+        	last[i]=lambda[i]
+        norma = abs(y[0])
+        for(i in 1..n-1)
+        	if(abs(y[i])<norma)
+            	norma=abs(y[i])
+        for(i in 0..n-1)
+            x[i]=y[i]/norma
+        for(i in 0..n-1)
+        {
+            y[i]=0.0
+            for(j in 0..n-1)
+        	{
+                y[i]+=A[i][j]*x[j]
+        	}
+        }
+        for (i in 0..n-1)
+            if (x[i]>delta)
+                flag[i]=true
+        for(i in 0..n-1)
+            if(flag[i])
+                lambda[i]=y[i]/x[i]
+        norma = abs(y[0])
+        for(i in 1..n-1)
+        	if(abs(y[i])<norma)
+            	norma=abs(y[i])
+        for(i in 0..n-1)
+        {
+            x[i]=y[i]/norma
+        }
+        for(i in 0..n-1)
+        {
+            if(abs(last[i]-lambda[i])<delta)
+            	count++
+        }
+    } while(!(count==n))
+    for(i in 0..1)
+        if(flag[i])
+        {
+            temp++
+            sum+=lambda[i]
+        }
+    println(sum/temp)
+}

@@ -1,0 +1,142 @@
+import java.util.Scanner
+import kotlin.math.*
+
+fun function(number: Int, x: Double): Double{
+    if(number==1)
+    {
+        return sin(x)*cos(x)
+    }
+    else if(number==2)
+    {
+        return exp(x)*x.pow(3)-27*x
+    }
+    else
+    {
+        return x.pow(4)+x.pow(3)+x.pow(2)+x+115
+    }
+}
+fun Gauss(A: MutableList<MutableList<Double>>, B:MutableList<Double>):MutableList<Double>{
+    var n=A.size
+    var maxMod: Double
+    var ind: Int
+    var temp: Double
+    var tempString: MutableList<Double>
+    for(k in 0..n-2)
+    {
+        maxMod = abs(A[k][k])
+        ind = k
+        for(m in k+1..n-1) {
+            if (abs(A[m][k]) > maxMod) {
+                ind = m
+                maxMod = abs(A[m][k])
+            }
+        }
+        if(maxMod <= Double.MIN_VALUE)
+        {
+            println("Sorry, no answers")
+            break
+        }
+        if(ind != k)
+        {
+            temp = B[k]
+            B[k] = B[ind]
+            B[ind] = temp
+            tempString = A[k]
+            A[k] = A[ind]
+            A[ind] = tempString
+        }
+        for(s in k+1..n-1)
+        {
+            temp = A[s][k]/A[k][k]
+            B[s]-=B[k]*temp
+            for(j in k..n-1)
+            {
+                A[s][j]-=A[k][j]*temp
+            }
+        }
+    }
+    var x: MutableList<Double> = DoubleArray(n).toMutableList()
+    var sum: Double
+    for(k in n-1 downTo 0)
+    {
+        sum = 0.0
+        for(j in k+1..n-1)
+        {
+            sum+=A[k][j]*x[j]
+        }
+        x[k]=((B[k]-sum) / A[k][k])
+    }
+    return x
+}
+fun integral_board(a: Double, n: Int, ck: MutableList<Double>): Double{
+    var res = 0.0
+    for(i in 0..n)
+        res+=ck[i]*a.pow(i+1)/(i+1)
+    return res
+}
+fun create_ck(nodes: MutableList<Double>,n: Int,number: Int): MutableList<Double>{
+    var A = MutableList(n+1){MutableList(n+1){0.0} }
+    var b = MutableList(n+1){0.0}
+    for(i in 0..n)
+    {
+        for(j in 0..n)
+        {
+            A[i][j]=nodes[i].pow(j)
+        }
+        b[i]=function(number,nodes[i])
+    }
+    return Gauss(A,b)
+}
+fun integral_gap(a: Double, H: Double, n: Int, number: Int): Double{
+    var h=H/n
+    var res: Double
+    var nodes = MutableList(n+1){0.0}
+    for(i in 0..n)
+    {
+        nodes[i]=a+i*h
+    }
+    var ck = create_ck(nodes,n,number)
+    res=integral_board(a+H,n,ck)-integral_board(a,n,ck)
+    return res
+}
+fun final_Integral(nodes:MutableList<Double>,number: Int,h: Double): Double{
+    var res = 0.0
+    var n=5
+    var count=nodes.size-1
+    for(i in 0..count-1)
+        res+=integral_gap(nodes[i],h,n,number)
+    return res
+}
+fun main()
+{
+    var a: Double
+    var b: Double
+    var eps = 1e-6
+    var n: Int
+    var number: Int
+    var scan=Scanner(System.`in`)
+    println("Выберите подынтегральную функцию:")
+    println("1 - sin(x)*cos(x)")
+    println("2 - e^x*x^3-27x")
+    println("3 - x^4 + x^3 + x^2 + x^1 + 115")
+    number=scan.nextInt()
+    println("Введите левую границу интервала:")
+    a=scan.nextDouble()
+    println("Введите правую границу интервала:")
+    b=scan.nextDouble()
+    println("Введите количество узлов")
+    n=scan.nextInt()
+    var h = (b-a)/(n-1)
+    if(a==b)
+    {
+        println("Поменяйте интервал интегрирования")
+        return
+    }
+    var nodes = MutableList(n){0.0}
+    for(i in 0..n-1)
+    {
+        nodes[i]=a+i*h
+    }
+    var result = final_Integral(nodes,number,h)
+    println("The result is $result")
+}

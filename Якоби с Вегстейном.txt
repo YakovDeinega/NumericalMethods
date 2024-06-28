@@ -1,0 +1,190 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
+import java.util.Scanner
+import kotlin.math.*
+
+fun console_text(message: String)
+{
+    print(message)
+    Files.write(Paths.get("data/name2.txt"),message.toByteArray())
+}
+fun system(choice: Int, number: Int, x: Double,y:Double,z:Double): Double
+{
+    if(choice==1)
+        return function_1(number,x,y,z)
+    else if(choice==2)
+        return function_2(number,x,y,z)
+    else
+        return function_3(number,x,y,z)
+}
+fun function_1(number: Int, x: Double, y:Double, z:Double): Double
+{
+    if(number==0)
+    {
+        return x.pow(2)-y.pow(2)+z
+    }
+    else if(number==1)
+    {
+        return x+y.pow(2)+z
+    }
+    else
+    {
+        return x+y+z
+    }
+}
+fun function_2(number: Int,x: Double, y:Double, z:Double): Double
+{
+    if(number==0)
+    {
+        return x.pow(3)-10*y-4.8*z-1
+    }
+    else if(number==1)
+    {
+        return 10*y-6*z
+    }
+    else
+    {
+        return x.pow(2)-y.pow(2)-2.7*z
+    }
+}
+fun function_3(number: Int,x: Double, y:Double, z:Double): Double
+{
+    if(number==0)
+    {
+        return 4*x+2*y-z
+    }
+    else if(number==1)
+    {
+        return  x+2*y+z-1
+    }
+    else
+    {
+        return y-z+3
+    }
+}
+fun derf(choice: Int, number: Int, x:Double, y:Double, z:Double): Double
+{
+    var h = 1e-7
+    if(number==0) {
+        return (system(choice,number, x + h,y,z) - system(choice,number, x,y,z)) / h
+    }
+    else if(number==1)
+    {
+        return (system(choice,number, x,y+h,z) - system(choice,number, x,y,z)) / h
+    }
+    else
+    {
+        return (system(choice,number, x,y,z+h) - system(choice,number, x,y,z)) / h
+    }
+}
+fun fi(choice: Int, number: Int, x:Double, y:Double, z:Double, x0:Double): Double
+{
+    if(number==0)
+    {
+        return x-(system(choice,number,x,y,z)/derf(choice,number,x0,y,z))
+    }
+    else if(number==1)
+    {
+        return y-(system(choice,number,x,y,z)/derf(choice,number,x,x0,z))
+    }
+    else
+    {
+        return z-(system(choice,number,x,y,z)/derf(choice,number,x,y,x0))
+    }
+}
+fun main()
+{
+    var eps: Double
+    var x_0: Double
+    var x1: Double
+    var x_1: Double
+    var x2: Double
+    var x_2: Double
+    var flag: Int
+    var scan=Scanner(System.`in`)
+    println("Введите номер системы:")
+    println("1-\tx^2-y^2+z=0\n\tx+y^2+z=0\n\tx+y+z=0")
+    println("2-\tx^3-10y-4,8z=0\n\t10y-6z=0\n\tx^2-y^2-2,7z=0")
+    println("3-\t4x+2y-z=0\n\tx+2y+z-1=0\n\ty-z+3=0")
+    var choice = scan.nextInt()
+    if(choice==1)
+    {
+        println("Решение:\nx=2\ny=1\nz=-3")
+    }
+    else if(choice==2)
+        println("Решение:\nx=3,075\ny=1,56\nz=-13,2")
+    else if(choice==3)
+        println("Единственное решение:\nx=1\ny=-1\nz=2")
+    println("Введите eps: ")
+    eps=scan.nextDouble()
+    var A: MutableList<Double> = MutableList(3) { 0.0 }
+    println("Введите начальные приближения: ")
+    for(i in 0..2)
+    {
+        A[i]=scan.nextDouble()
+    }
+    var k=0
+    var B: MutableList<Double> = MutableList(3) { 0.0 }
+    while(abs(system(choice,0,A[0],A[1],A[2]))>eps || abs(system(choice,1,A[0],A[1],A[2]))>eps || abs(system(choice,2,A[0],A[1],A[2]))>eps) {
+        k++
+        flag=0
+        if(k>1000)
+        {
+            println("Попробуйте другие начальные приближения")
+            return
+        }
+        for(i in 0..2)
+        {
+            B[i]=A[i]
+        }
+        for(i in 0..2)
+        {
+            var x0 = B[i]
+            if(i==0)
+            {
+                x1 = fi(choice,i, A[0], B[1], B[2], x0)
+            }
+            else if(i==1)
+            {
+                x1 = fi(choice,i, B[0], A[1], B[2], x0)
+            }
+            else
+            {
+                x1 = fi(choice,i, B[0], B[1], A[2], x0)
+            }
+            var step = 0
+            if (abs(x1 - x0) > (eps)) {
+                x_0 = x0
+                x_1 = x1
+                do {
+                    step++
+                    if (i == 0) {
+                        x2 = fi(choice,i, x_1, B[1], B[2], x0)
+                    } else if(i==1){
+                        x2 = fi(choice,i, B[0], x_1, B[2], x0)
+                    }
+                    else
+                    {
+                        x2 = fi(choice,i, B[0], B[1], x_1, x0)
+                    }
+                    x_2 = (x2 * x_0 - x1 * x_1) / (x2 + x_0 - x1 - x_1)
+                    x_0 = x_1
+                    x1 = x2
+                    x_1 = x_2
+                    A[i]=x2
+                } while (abs(x2 - x_1) > (eps) && (abs(system(choice,i, A[0], A[1],A[2])) > eps && step < 1000))
+            }
+            if(abs(A[i]-B[i])<=eps)
+                flag++
+            println("Промежуточный корень $i на $k-м шаге: ${A[i]}")
+            if(A[i].isNaN()){
+                println("Попробуйте другие начальные приближения")
+                return
+            }
+        }
+        if(flag==3)
+            break
+        }
+    println("Корни системы: ${A[0]}\t${A[1]}\t${A[2]}")
+}
